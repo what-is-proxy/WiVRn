@@ -138,7 +138,7 @@ if (WIVRN_BUILD_SERVER)
 
     pkg_check_modules(AVAHI REQUIRED IMPORTED_TARGET avahi-client)
     find_package(Eigen3 REQUIRED)
-    find_package(nlohmann_json REQUIRED)
+    find_package(nlohmann_json REQUIRED IMPORTED_TARGET nlohmann-json3-dev)
     find_package(CLI11 REQUIRED)
 endif()
 
