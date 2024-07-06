@@ -27,11 +27,11 @@
 namespace xrt::drivers::wivrn
 {
 
-void VideoEncoderX264::ProcessCb(x264_t * h, x264_nal_t * nal, void * opaque)
+void VideoEncoderX265::ProcessCb(x265_t * h, x265_nal_t * nal, void * opaque)
 {
-	VideoEncoderX264 * self = (VideoEncoderX264 *)opaque;
+	VideoEncoderX265 * self = (VideoEncoderX265 *)opaque;
 	std::vector<uint8_t> data(nal->i_payload * 3 / 2 + 5 + 64, 0);
-	x264_nal_encode(h, data.data(), nal);
+	x265_nal_encode(h, data.data(), nal);
 	data.resize(nal->i_payload);
 	switch (nal->i_type)
 	{
@@ -49,7 +49,7 @@ void VideoEncoderX264::ProcessCb(x264_t * h, x264_nal_t * nal, void * opaque)
 	}
 }
 
-void VideoEncoderX264::ProcessNal(pending_nal && nal)
+void VideoEncoderX265::ProcessNal(pending_nal && nal)
 {
 	std::lock_guard lock(mutex);
 	if (nal.first_mb == next_mb)
@@ -69,7 +69,7 @@ void VideoEncoderX264::ProcessNal(pending_nal && nal)
 	}
 }
 
-void VideoEncoderX264::InsertInPendingNal(pending_nal && nal)
+void VideoEncoderX265::InsertInPendingNal(pending_nal && nal)
 {
 	auto it = pending_nals.begin();
 	auto end = pending_nals.end();
@@ -84,15 +84,15 @@ void VideoEncoderX264::InsertInPendingNal(pending_nal && nal)
 	pending_nals.push_back(std::move(nal));
 }
 
-VideoEncoderX264::VideoEncoderX264(
+VideoEncoderX265::VideoEncoderX265(
         wivrn_vk_bundle & vk,
         encoder_settings & settings,
         float fps)
 {
-	if (settings.codec != h264)
+	if (settings.codec != h265)
 	{
-		U_LOG_W("requested x264 encoder with codec != h264");
-		settings.codec = h264;
+		U_LOG_W("requested x265 encoder with codec != h265");
+		settings.codec = h265;
 	}
 
 	// encoder requires width and height to be even
@@ -134,18 +134,18 @@ VideoEncoderX264::VideoEncoderX264(
 	                .usage = VMA_MEMORY_USAGE_AUTO,
 	        });
 
-	x264_param_default_preset(&param, "ultrafast", "zerolatency");
+	x265_param_default_preset(&param, "ultrafast", "zerolatency");
 	param.nalu_process = &ProcessCb;
 	// param.i_slice_max_size = 1300;
 	param.i_slice_count = 32;
 	param.i_width = settings.video_width;
 	param.i_height = settings.video_height;
-	param.i_log_level = X264_LOG_WARNING;
+	param.i_log_level = X265_LOG_WARNING;
 	param.i_fps_num = fps * 1'000'000;
 	param.i_fps_den = 1'000'000;
 	param.b_repeat_headers = 1;
 	param.b_aud = 0;
-	param.i_keyint_max = X264_KEYINT_MAX_INFINITE;
+	param.i_keyint_max = X265_KEYINT_MAX_INFINITE;
 
 	// colour definitions, actually ignored by decoder
 	param.vui.b_fullrange = 1;
@@ -157,20 +157,20 @@ VideoEncoderX264::VideoEncoderX264(
 
 	param.vui.i_sar_width = settings.width;
 	param.vui.i_sar_height = settings.height;
-	param.rc.i_rc_method = X264_RC_ABR;
-	param.rc.i_bitrate = settings.bitrate / 1000; // x264 uses kbit/s
-	enc = x264_encoder_open(&param);
+	param.rc.i_rc_method = X265_RC_ABR;
+	param.rc.i_bitrate = settings.bitrate / 1000; // x265 uses kbit/s
+	enc = x265_encoder_open(&param);
 	if (not enc)
 	{
-		throw std::runtime_error("failed to create x264 encoder");
+		throw std::runtime_error("failed to create x265 encoder");
 	}
 
-	assert(x264_encoder_maximum_delayed_frames(enc) == 0);
+	assert(x265_encoder_maximum_delayed_frames(enc) == 0);
 
 	auto & pic = pic_in;
-	x264_picture_init(&pic);
+	x265_picture_init(&pic);
 	pic.opaque = this;
-	pic.img.i_csp = X264_CSP_NV12;
+	pic.img.i_csp = X265_CSP_NV12;
 	pic.img.i_plane = 2;
 
 	pic.img.i_stride[0] = settings.video_width;
@@ -179,7 +179,7 @@ VideoEncoderX264::VideoEncoderX264(
 	pic.img.plane[1] = (uint8_t *)chroma.map();
 }
 
-void VideoEncoderX264::PresentImage(yuv_converter & src_yuv, vk::raii::CommandBuffer & cmd_buf)
+void VideoEncoderX265::PresentImage(yuv_converter & src_yuv, vk::raii::CommandBuffer & cmd_buf)
 {
 	cmd_buf.copyImageToBuffer(
 	        src_yuv.luma,
@@ -221,22 +221,22 @@ void VideoEncoderX264::PresentImage(yuv_converter & src_yuv, vk::raii::CommandBu
 	                }});
 }
 
-void VideoEncoderX264::Encode(bool idr, std::chrono::steady_clock::time_point pts)
+void VideoEncoderX265::Encode(bool idr, std::chrono::steady_clock::time_point pts)
 {
 	int num_nal;
-	x264_nal_t * nal;
-	pic_in.i_type = idr ? X264_TYPE_IDR : X264_TYPE_P;
+	x265_nal_t * nal;
+	pic_in.i_type = idr ? X265_TYPE_IDR : X265_TYPE_P;
 	pic_in.i_pts = pts.time_since_epoch().count();
 	next_mb = 0;
 	assert(pending_nals.empty());
-	int size = x264_encoder_encode(enc, &nal, &num_nal, &pic_in, &pic_out);
+	int size = x265_encoder_encode(enc, &nal, &num_nal, &pic_in, &pic_out);
 	if (next_mb != num_mb)
 	{
 		U_LOG_W("unexpected macroblock count: %d", next_mb);
 	}
 	if (size < 0)
 	{
-		U_LOG_W("x264_encoder_encode failed: %d", size);
+		U_LOG_W("x265_encoder_encode failed: %d", size);
 		return;
 	}
 	if (size == 0)
@@ -245,9 +245,9 @@ void VideoEncoderX264::Encode(bool idr, std::chrono::steady_clock::time_point pt
 	}
 }
 
-VideoEncoderX264::~VideoEncoderX264()
+VideoEncoderX265::~VideoEncoderX265()
 {
-	x264_encoder_close(enc);
+	x265_encoder_close(enc);
 }
 
 } // namespace xrt::drivers::wivrn

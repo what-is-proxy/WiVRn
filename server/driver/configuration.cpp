@@ -46,8 +46,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
         video_codec,
         {
                 {video_codec(-1), ""},
-                {h264, "h264"},
-                {h264, "avc"},
                 {h265, "h265"},
                 {h265, "hevc"},
         })

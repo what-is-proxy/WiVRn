@@ -52,9 +52,6 @@ std::vector<const char *> wivrn_comp_target::wanted_device_extensions = {
 #ifdef VK_KHR_video_encode_queue
         VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME,
 #endif
-#ifdef VK_KHR_video_encode_h264
-        VK_KHR_VIDEO_ENCODE_H264_EXTENSION_NAME,
-#endif
 #ifdef VK_KHR_video_encode_h265
         VK_KHR_VIDEO_ENCODE_H265_EXTENSION_NAME,
 #endif

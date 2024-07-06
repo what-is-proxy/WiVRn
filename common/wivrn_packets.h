@@ -77,7 +77,6 @@ enum class device_id : uint8_t
 
 enum video_codec
 {
-	h264,
 	h265,
 	hevc = h265,
 };

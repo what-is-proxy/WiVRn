@@ -30,7 +30,7 @@ namespace xrt::drivers::wivrn
 
 struct encoder_settings : public to_headset::video_stream_description::item
 {
-	// encoder identifier, such as nvenc, vaapi or x264
+	// encoder identifier, such as nvenc, vaapi or x265
 	std::string encoder_name;
 	uint64_t bitrate;                           // bit/s
 	std::map<std::string, std::string> options; // additional encoder-specific configuration

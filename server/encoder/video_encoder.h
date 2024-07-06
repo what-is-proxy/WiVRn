@@ -40,7 +40,7 @@ class wivrn_session;
 
 inline const char * encoder_nvenc = "nvenc";
 inline const char * encoder_vaapi = "vaapi";
-inline const char * encoder_x264 = "x264";
+inline const char * encoder_x265 = "x265";
 
 class VideoEncoder
 {

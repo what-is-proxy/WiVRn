@@ -21,7 +21,7 @@
 
 #include "video_encoder.h"
 #include "vk/allocation.h"
-#include "x264.h"
+#include "x265.h"
 
 #include <list>
 #include <mutex>
@@ -30,13 +30,13 @@
 namespace xrt::drivers::wivrn
 {
 
-class VideoEncoderX264 : public VideoEncoder
+class VideoEncoderX265 : public VideoEncoder
 {
-	x264_param_t param = {};
-	x264_t * enc;
+	x265_param_t param = {};
+	x265_t * enc;
 
-	x264_picture_t pic_in;
-	x264_picture_t pic_out = {};
+	x265_picture_t pic_in;
+	x265_picture_t pic_out = {};
 
 	buffer_allocation luma;
 	buffer_allocation chroma;
@@ -57,16 +57,16 @@ class VideoEncoderX264 : public VideoEncoder
 	std::list<pending_nal> pending_nals;
 
 public:
-	VideoEncoderX264(wivrn_vk_bundle & vk, encoder_settings & settings, float fps);
+	VideoEncoderX265(wivrn_vk_bundle & vk, encoder_settings & settings, float fps);
 
 	void PresentImage(yuv_converter & src_yuv, vk::raii::CommandBuffer & cmd_buf) override;
 
 	void Encode(bool idr, std::chrono::steady_clock::time_point pts) override;
 
-	~VideoEncoderX264();
+	~VideoEncoderX265();
 
 private:
-	static void ProcessCb(x264_t * h, x264_nal_t * nal, void * opaque);
+	static void ProcessCb(x265_t * h, x265_nal_t * nal, void * opaque);
 
 	void ProcessNal(pending_nal && nal);
 

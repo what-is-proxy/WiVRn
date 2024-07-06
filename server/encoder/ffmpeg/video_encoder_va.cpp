@@ -47,8 +47,6 @@ encoder(VideoEncoderFFMPEG::Codec codec)
 {
 	switch (codec)
 	{
-		case VideoEncoderFFMPEG::Codec::h264:
-			return "h264_vaapi";
 		case VideoEncoderFFMPEG::Codec::h265:
 			return "hevc_vaapi";
 	}
@@ -181,17 +179,7 @@ video_encoder_va::video_encoder_va(wivrn_vk_bundle & vk, xrt::drivers::wivrn::en
 
 	AVDictionary * opts = nullptr;
 	av_dict_set(&opts, "async_depth", "1", 0);
-	switch (settings.codec)
-	{
-		case Codec::h264:
-			encoder_ctx->profile = FF_PROFILE_H264_CONSTRAINED_BASELINE;
-			av_dict_set(&opts, "coder", "cavlc", 0);
-			av_dict_set(&opts, "rc_mode", "CBR", 0);
-			break;
-		case Codec::h265:
-			encoder_ctx->profile = FF_PROFILE_HEVC_MAIN;
-			break;
-	}
+	encoder_ctx->profile = FF_PROFILE_HEVC_MAIN;
 	for (auto option: settings.options)
 	{
 		av_dict_set(&opts, option.first.c_str(), option.second.c_str(), 0);

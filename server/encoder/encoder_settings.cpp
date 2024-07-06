@@ -161,11 +161,11 @@ static std::vector<configuration::encoder> get_encoder_default_settings(vk::Phys
 		        },
 		};
 #endif
-#elif defined(WIVRN_USE_X264)
+#elif defined(WIVRN_USE_X265)
 		U_LOG_W("ffmpeg support not compiled, vaapi encoder not available");
-		return {{.name = encoder_x264, .codec = h264}};
+		return {{.name = encoder_x265, .codec = h265}};
 #else
-		U_LOG_E("no suitable encoder available (compile with x264 or ffmpeg support)");
+		U_LOG_E("no suitable encoder available (compile with x265 or ffmpeg support)");
 		return {};
 #endif
 	}
@@ -195,7 +195,7 @@ std::vector<encoder_settings> xrt::drivers::wivrn::get_encoder_settings(vk::Phys
 	for (const auto & encoder: config.encoders)
 	{
 		check_scale(encoder.name,
-		            encoder.codec.value_or(xrt::drivers::wivrn::h264),
+		            encoder.codec.value_or(xrt::drivers::wivrn::h265),
 		            std::ceil(encoder.width.value_or(1) * width),
 		            std::ceil(encoder.height.value_or(1) * height),
 		            scale);
