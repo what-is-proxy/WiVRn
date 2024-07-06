@@ -10,9 +10,9 @@ It also requires at least one encoder:
 
  * For vaapi (AMD/Intel), it requires ffmpeg with vaapi and libdrm support, as well as vaapi drivers for the GPU
  * For nvenc (Nvidia), it requires cuda and nvidia driver
- * For x264 (software encoding), it requires libx264
+ * For x265 (software encoding), it requires libx265
 
-Some distributions such as Fedora don't ship h264 and h265 encoders and need specific repositories.
+Some distributions such as Fedora don't ship h265 encoders and need specific repositories.
 
 ## Compile
 
@@ -25,7 +25,7 @@ cmake --build build-server
 It is possible to force specific encoders, by adding options
 ```
 -DWIVRN_USE_VAAPI=ON
--DWIVRN_USE_X264=ON
+-DWIVRN_USE_X265=ON
 -DWIVRN_USE_NVENC=ON
 ```
 

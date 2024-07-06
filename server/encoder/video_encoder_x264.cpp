@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "video_encoder_x264.h"
+#include "video_encoder_x265.h"
 
 #include "util/u_logging.h"
 #include "utils/wivrn_vk_bundle.h"

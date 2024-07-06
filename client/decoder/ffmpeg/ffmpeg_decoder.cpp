@@ -50,8 +50,6 @@ static AVCodecID codec_id(xrt::drivers::wivrn::video_codec codec)
 	using c = xrt::drivers::wivrn::video_codec;
 	switch (codec)
 	{
-		case c::h264:
-			return AV_CODEC_ID_H264;
 		case c::h265:
 			return AV_CODEC_ID_HEVC;
 	}

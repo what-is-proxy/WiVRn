@@ -34,14 +34,14 @@ WiVRn has the ability to split the video in blocks that are processed independen
 All the provided encoders are put into groups, groups are executed concurrently and items within a group are processed sequentially.
 
 ### `encoder`
-Default value: `nvenc` if Nvidia GPU and compiled with cuda, `vaapi` for all other GPU when compiled with ffmpeg, else `x264`.
+Default value: `nvenc` if Nvidia GPU and compiled with cuda, `vaapi` for all other GPU when compiled with ffmpeg, else `x265`.
 
-Identifier of the encoder, one of `x264` (software encoding), `nvenc` (Nvidia hardware encoding), `vaapi` (AMD/Intel hardware encoding)
+Identifier of the encoder, one of `x265` (software encoding), `nvenc` (Nvidia hardware encoding), `vaapi` (AMD/Intel hardware encoding)
 
 ### `codec`
 Default value: `h265`
 
-One of `h264` or `h265`. If using `x264` encoder, value is ignored and `h264` is used.
+If using `x265` encoder, `h265` is used.
 
 ### `width`, `height`, `offset_x`, `offset_y` (advanced)
 Default values: full image (`width` = 1, `height` = 1, `offset_x` = 0, `offset_y` = 0)
@@ -82,8 +82,8 @@ Creates a single encoder, using vaapi hardware encoding, h265 video codec (HEVC)
 			"offset_y": 0
 		},
 		{
-			"encoder": "x264",
-			"codec": "h264",
+			"encoder": "x265",
+			"codec": "h265",
 			"width": 0.5,
 			"height": 1,
 			"offset_x": 0.5,
@@ -110,7 +110,7 @@ Creates a hardware encoder for left eye, and a software encoder for right eye.
 		},
 		{
 			"encoder": "vaapi",
-			"codec": "h264",
+			"codec": "h265",
 			"width": 0.5,
 			"height": 1,
 			"offset_x": 0.5,

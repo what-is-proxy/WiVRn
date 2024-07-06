@@ -53,14 +53,6 @@ static void split_bitrate(std::vector<xrt::drivers::wivrn::encoder_settings> & e
 	for (auto & encoder: encoders)
 	{
 		double w = encoder.width * encoder.height;
-		switch (encoder.codec)
-		{
-			case xrt::drivers::wivrn::h264:
-				w *= 2;
-				break;
-			case xrt::drivers::wivrn::h265:
-				break;
-		}
 		encoder.bitrate = w;
 		total_weight += w;
 	}
@@ -118,11 +110,11 @@ static std::vector<configuration::encoder> get_encoder_default_settings(vk::Phys
 	{
 #ifdef WIVRN_USE_NVENC
 		return {{.name = encoder_nvenc}};
-#elif defined(WIVRN_USE_X264)
-		U_LOG_W("nvidia GPU detected, but nvenc support not compiled");
-		return {{.name = encoder_x264, .codec = h264}};
+#elif defined(WIVRN_USE_X265)
+		U_LOG_W("nvidia GPU detected, but x265 support not compiled");
+		return {{.name = encoder_x265, .codec = h265}};
 #else
-		U_LOG_E("no suitable encoder available (compile with x264 or nvenc support)");
+		U_LOG_E("no suitable encoder available (compile with x265 or nvenc support)");
 		return {};
 #endif
 	}

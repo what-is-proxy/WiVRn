@@ -124,8 +124,6 @@ static auto encode_guid(video_codec codec)
 {
 	switch (codec)
 	{
-		case h264:
-			return NV_ENC_CODEC_H264_GUID;
 		case h265:
 			return NV_ENC_CODEC_HEVC_GUID;
 	}
@@ -158,24 +156,11 @@ VideoEncoderNvenc::VideoEncoderNvenc(wivrn_vk_bundle & vk, encoder_settings & se
 	presets.resize(count);
 	NVENC_CHECK(fn.nvEncGetEncodePresetGUIDs(session_handle, encodeGUID, presets.data(), count, &count));
 
-	switch (settings.codec)
-	{
-		case video_codec::h264:
-			printf("%d H264 presets\n", count);
-			break;
-
-		case video_codec::h265:
-			printf("%d HEVC presets\n", count);
-			break;
-	}
-
 	for (GUID & i: presets)
 	{
 		printf("  Preset {%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x}\n", i.Data1, i.Data2, i.Data3, i.Data4[0], i.Data4[1], i.Data4[2], i.Data4[3], i.Data4[4], i.Data4[5], i.Data4[6], i.Data4[7]);
 	}
 
-	// auto presetGUID = codec == video_codec::h264 ? NV_ENC_PRESET_LOW_LATENCY_DEFAULT_GUID :
-	// NV_ENC_PRESET_P7_GUID;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	auto presetGUID = NV_ENC_PRESET_LOW_LATENCY_HQ_GUID;
@@ -199,21 +184,11 @@ VideoEncoderNvenc::VideoEncoderNvenc(wivrn_vk_bundle & vk, encoder_settings & se
 	params.gopLength = NVENC_INFINITE_GOPLENGTH;
 	params.frameIntervalP = 1;
 
-	switch (settings.codec)
-	{
-		case video_codec::h264:
-			params.encodeCodecConfig.h264Config.repeatSPSPPS = 1;
-			params.encodeCodecConfig.h264Config.maxNumRefFrames = 0;
-			params.encodeCodecConfig.h264Config.idrPeriod = NVENC_INFINITE_GOPLENGTH;
-			params.encodeCodecConfig.h264Config.h264VUIParameters.videoFullRangeFlag = 1;
-			break;
-		case video_codec::h265:
-			params.encodeCodecConfig.hevcConfig.repeatSPSPPS = 1;
-			params.encodeCodecConfig.hevcConfig.maxNumRefFramesInDPB = 0;
-			params.encodeCodecConfig.hevcConfig.idrPeriod = NVENC_INFINITE_GOPLENGTH;
-			params.encodeCodecConfig.hevcConfig.hevcVUIParameters.videoFullRangeFlag = 1;
-			break;
-	}
+	params.encodeCodecConfig.hevcConfig.repeatSPSPPS = 1;
+	params.encodeCodecConfig.hevcConfig.maxNumRefFramesInDPB = 0;
+	params.encodeCodecConfig.hevcConfig.idrPeriod = NVENC_INFINITE_GOPLENGTH;
+	params.encodeCodecConfig.hevcConfig.hevcVUIParameters.videoFullRangeFlag = 1;
+
 	settings.range = VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
 	settings.color_model = VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_709;
 

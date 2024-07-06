@@ -52,8 +52,6 @@ const char * mime(xrt::drivers::wivrn::video_codec codec)
 	using c = xrt::drivers::wivrn::video_codec;
 	switch (codec)
 	{
-		case c::h264:
-			return "video/avc";
 		case c::h265:
 			return "video/hevc";
 	}
@@ -68,12 +66,6 @@ void check(media_status_t status, const char * msg)
 		throw std::runtime_error("MediaCodec error");
 	}
 }
-
-namespace nal_h264
-{
-static const int sps = 7;
-static const int pps = 8;
-} // namespace nal_h264
 
 namespace nal_h265
 {
@@ -90,20 +82,6 @@ enum class nal_class
 	data,
 	garbage
 };
-
-nal_class get_nal_class_h264(uint8_t * nal)
-{
-	uint8_t nal_type = (nal[2] == 0 ? nal[4] : nal[3]) & 0x1F;
-	// spdlog::info("H264 NAL type {}", (int)nal_type);
-	switch (nal_type)
-	{
-		case nal_h264::sps:
-		case nal_h264::pps:
-			return nal_class::csd;
-		default:
-			return nal_class::data;
-	}
-}
 
 nal_class get_nal_class_h265(uint8_t * nal)
 {
@@ -127,9 +105,6 @@ nal_class get_nal_class(uint8_t * nal, xrt::drivers::wivrn::video_codec codec)
 {
 	switch (codec)
 	{
-		case xrt::drivers::wivrn::video_codec::h264:
-			return get_nal_class_h264(nal);
-
 		case xrt::drivers::wivrn::video_codec::h265:
 			return get_nal_class_h265(nal);
 	}

@@ -90,4 +90,4 @@ WiVRn uses the following software:
 - [spdlog](https://github.com/gabime/spdlog)
 - [VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
 - [WebXR input profiles](https://www.npmjs.com/package/@webxr-input-profiles/motion-controllers)
-- [x264](https://www.videolan.org/developers/x264.html) optional, for software encoding
+- [x265](https://www.videolan.org/developers/x265.html) optional, for software encoding
