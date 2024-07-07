@@ -117,7 +117,7 @@ if(WIVRN_USE_X265)
 endif()
 
 if(WIVRN_USE_SYSTEMD)
-        target_link_libraries(wivrn-server PRIVATE PkgConfig::SYSTEMD)
+    target_link_libraries(wivrn-server PRIVATE PkgConfig::SYSTEMD)
 endif()
 
 if(WIVRN_USE_PIPEWIRE)
