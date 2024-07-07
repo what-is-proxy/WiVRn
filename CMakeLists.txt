@@ -138,26 +138,11 @@ if (WIVRN_BUILD_SERVER)
 
     pkg_check_modules(AVAHI REQUIRED IMPORTED_TARGET avahi-client)
     find_package(Eigen3 REQUIRED)
-    find_package(nlohmann_json QUIET)
-    if(NOT nlohmann_json_FOUND)
-        find_package(nlohmann_json3 QUIET)
-    endif()
-    if(NOT nlohmann_json_FOUND AND NOT nlohmann_json3_FOUND)
-        find_path(NLOHMANN_JSON_INCLUDE_DIR nlohmann/json.hpp
-            PATHS
-                /usr/include
-                /usr/local/include
-        )
-        if(NLOHMANN_JSON_INCLUDE_DIR)
-            add_library(nlohmann_json INTERFACE)
-            target_include_directories(nlohmann_json INTERFACE ${NLOHMANN_JSON_INCLUDE_DIR})
-            set(nlohmann_json_FOUND TRUE)
-        else()
-            message(FATAL_ERROR "nlohmann_json not found. Please install nlohmann-json3-dev package or set nlohmann_json_DIR.")
-        endif()
-    endif()
+    find_package(nlohmann_json REQUIRED)
     find_package(CLI11 REQUIRED)
 endif()
+
+find_package(CLI11 REQUIRED)
 
 if (WIVRN_BUILD_CLIENT AND NOT ANDROID)
     pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET libavcodec libavutil libswscale libavfilter)
