@@ -53,7 +53,7 @@ if(ANDROID)
     target_include_directories(wivrn-common PUBLIC ${CMAKE_BINARY_DIR}/Vulkan-Headers-vulkan-sdk-${VULKAN_VERSION}/include)
     target_compile_definitions(wivrn-common PUBLIC VMA_VULKAN_VERSION=1001000)
 else()
-    find_package(Vulkan REQUIRED)
+    find_package(Vulkan REQUIRED CONFIG)
     target_link_libraries(wivrn-common PUBLIC Vulkan::Headers)
 endif()
 
