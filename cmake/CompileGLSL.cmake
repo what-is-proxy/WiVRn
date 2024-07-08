@@ -9,7 +9,7 @@ function(compile_glsl_aux shader_stage shader_name glsl_filename output)
             COMMAND echo "#include \"${shader_name}.spv\"" >> ${output}
             COMMAND echo "}},"                             >> ${output}
 
-            COMMAND Vulkan::glslangValidator -V -S ${shader_stage} -D${shader_stage_upper}_SHADER ${in_file} -x -o ${shader_name}.spv
+            COMMAND glslangValidator -V -S ${shader_stage} -D${shader_stage_upper}_SHADER ${in_file} -x -o ${shader_name}.spv
             DEPENDS ${glsl_filename}
             VERBATIM
             APPEND
