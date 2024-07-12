@@ -37,7 +37,7 @@ sudo apt-get install -y \
     libcli11-dev
 
 # Clone WiVRn repository
-git clone https://github.com/Meumeu/WiVRn.git
+git clone https://github.com/what-is-proxy/WiVRn.git
 cd WiVRn
 
 # Build WiVRn server
