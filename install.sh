@@ -198,7 +198,7 @@ fi
 log_section "Building WiVRn client"
 # Build WiVRn client
 log_message "Building WiVRn client..."
-./gradlew assembleStandardRelease &
+./gradlew assembleStandardRelease
 show_progress $!
 
 log_section "Installing WiVRn client"
