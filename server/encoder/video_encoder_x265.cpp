@@ -27,7 +27,7 @@
 namespace xrt::drivers::wivrn
 {
 
-void VideoEncoderX265::ProcessCb(x265_t * h, x265_nal * nal, void * opaque)
+void VideoEncoderX265::ProcessCb(x265_encoder * h, x265_nal * nal, void * opaque)
 {
 	VideoEncoderX265 * self = (VideoEncoderX265 *)opaque;
 	std::vector<uint8_t> data(nal->sizeBytes);

@@ -66,7 +66,7 @@ public:
 	~VideoEncoderX265();
 
 private:
-	static void ProcessCb(x265_t * h, x265_nal * nal, void * opaque);
+	static void ProcessCb(x265_encoder * h, x265_nal * nal, void * opaque);
 
 	void ProcessNal(pending_nal && nal);
 
