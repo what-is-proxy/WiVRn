@@ -34,7 +34,7 @@ PACKAGES=(
     libx11-xcb-dev libxrandr-dev libxcb-randr0-dev libgl-dev libglx-dev
     mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev libsystemd-dev libva-dev
     nlohmann-json3-dev libpulse-dev libpipewire-0.3-dev libcli11-dev libboost-all-dev
-    doxygen libuvc-dev
+    doxygen libuvc-dev libusb-1.0-0-dev
 )
 
 install_packages "${PACKAGES[@]}"
