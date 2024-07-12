@@ -56,8 +56,7 @@ cmake -B build-server . -GNinja \
     -DWIVRN_USE_NVENC=ON \
     -DWIVRN_USE_PIPEWIRE=ON \
     -DWIVRN_USE_PULSEAUDIO=ON \
-    -DWIVRN_USE_SYSTEMD=ON \
-    -DWIVRN_USE_SYSTEM_BOOST=ON
+    -DWIVRN_USE_SYSTEMD=ON
 
 cmake --build build-server
 
