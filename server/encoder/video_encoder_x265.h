@@ -21,7 +21,7 @@
 
 #include "video_encoder.h"
 #include "vk/allocation.h"
-#include "x265.h"
+#include <x265.h>
 
 #include <list>
 #include <mutex>
@@ -32,11 +32,11 @@ namespace xrt::drivers::wivrn
 
 class VideoEncoderX265 : public VideoEncoder
 {
-	x265_param_t param = {};
-	x265_t * enc;
+	x265_param * param = nullptr;
+	x265_encoder * enc = nullptr;
 
-	x265_picture_t pic_in;
-	x265_picture_t pic_out = {};
+	x265_picture * pic_in = nullptr;
+	x265_picture * pic_out = nullptr;
 
 	buffer_allocation luma;
 	buffer_allocation chroma;
@@ -66,7 +66,7 @@ public:
 	~VideoEncoderX265();
 
 private:
-	static void ProcessCb(x265_t * h, x265_nal_t * nal, void * opaque);
+	static void ProcessCb(void * opaque, x265_nal * nal);
 
 	void ProcessNal(pending_nal && nal);
 

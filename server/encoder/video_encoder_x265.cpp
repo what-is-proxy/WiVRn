@@ -27,31 +27,15 @@
 namespace xrt::drivers::wivrn
 {
 
-void VideoEncoderX265::ProcessCb(x265_t * h, x265_nal_t * nal, void * opaque)
+void VideoEncoderX265::ProcessCb(void * opaque, x265_nal * nal)
 {
-	VideoEncoderX265 * self = (VideoEncoderX265 *)opaque;
-	std::vector<uint8_t> data(nal->i_payload * 3 / 2 + 5 + 64, 0);
-	x265_nal_encode(h, data.data(), nal);
-	data.resize(nal->i_payload);
-	switch (nal->i_type)
-	{
-		case NAL_SPS:
-		case NAL_PPS: {
-			self->SendData(data, false);
-			break;
-		}
-		case NAL_SLICE:
-		case NAL_SLICE_DPA:
-		case NAL_SLICE_DPB:
-		case NAL_SLICE_DPC:
-		case NAL_SLICE_IDR:
-			self->ProcessNal({nal->i_first_mb, nal->i_last_mb, std::move(data)});
-	}
+	VideoEncoderX265 * self = static_cast<VideoEncoderX265 *>(opaque);
+	self->ProcessNal({nal->i_first_mb, nal->i_last_mb, std::vector<uint8_t>(nal->p_payload, nal->p_payload + nal->i_payload)});
 }
 
 void VideoEncoderX265::ProcessNal(pending_nal && nal)
 {
-	std::lock_guard lock(mutex);
+	std::lock_guard<std::mutex> lock(mutex);
 	if (nal.first_mb == next_mb)
 	{
 		next_mb = nal.last_mb + 1;
@@ -61,7 +45,7 @@ void VideoEncoderX265::ProcessNal(pending_nal && nal)
 	{
 		InsertInPendingNal(std::move(nal));
 	}
-	while ((not pending_nals.empty()) and pending_nals.front().first_mb == next_mb)
+	while (!pending_nals.empty() && pending_nals.front().first_mb == next_mb)
 	{
 		next_mb = pending_nals.front().last_mb + 1;
 		SendData(pending_nals.front().data, next_mb == num_mb);
@@ -71,17 +55,8 @@ void VideoEncoderX265::ProcessNal(pending_nal && nal)
 
 void VideoEncoderX265::InsertInPendingNal(pending_nal && nal)
 {
-	auto it = pending_nals.begin();
-	auto end = pending_nals.end();
-	for (; it != end; ++it)
-	{
-		if (it->first_mb > nal.last_mb)
-		{
-			pending_nals.insert(it, std::move(nal));
-			return;
-		}
-	}
-	pending_nals.push_back(std::move(nal));
+	auto it = std::lower_bound(pending_nals.begin(), pending_nals.end(), nal, [](const pending_nal & a, const pending_nal & b) { return a.first_mb < b.first_mb; });
+	pending_nals.insert(it, std::move(nal));
 }
 
 VideoEncoderX265::VideoEncoderX265(
@@ -89,10 +64,10 @@ VideoEncoderX265::VideoEncoderX265(
         encoder_settings & settings,
         float fps)
 {
-	if (settings.codec != h265)
+	if (settings.encoder_name != "h265")
 	{
 		U_LOG_W("requested x265 encoder with codec != h265");
-		settings.codec = h265;
+		settings.encoder_name = "h265";
 	}
 
 	// encoder requires width and height to be even
@@ -100,7 +75,6 @@ VideoEncoderX265::VideoEncoderX265(
 	settings.video_height += settings.video_height % 2;
 	chroma_width = settings.video_width / 2;
 
-	// FIXME: enforce even values
 	rect = vk::Rect2D{
 	        .offset = {
 	                .x = settings.offset_x,
@@ -134,49 +108,45 @@ VideoEncoderX265::VideoEncoderX265(
 	                .usage = VMA_MEMORY_USAGE_AUTO,
 	        });
 
-	x265_param_default_preset(&param, "ultrafast", "zerolatency");
-	param.nalu_process = &ProcessCb;
-	// param.i_slice_max_size = 1300;
-	param.i_slice_count = 32;
-	param.i_width = settings.video_width;
-	param.i_height = settings.video_height;
-	param.i_log_level = X265_LOG_WARNING;
-	param.i_fps_num = fps * 1'000'000;
-	param.i_fps_den = 1'000'000;
-	param.b_repeat_headers = 1;
-	param.b_aud = 0;
-	param.i_keyint_max = X265_KEYINT_MAX_INFINITE;
+	param = x265_param_alloc();
+	x265_param_default_preset(param, "ultrafast", "zerolatency");
+	param->bRepeatHeaders = 1;
+	param->bAnnexB = 0;
+	param->internalCsp = X265_CSP_I420;
+	param->sourceWidth = settings.video_width;
+	param->sourceHeight = settings.video_height;
+	param->fpsNum = static_cast<uint32_t>(fps * 1'000'000);
+	param->fpsDenom = 1'000'000;
+	param->logLevel = X265_LOG_WARNING;
+	param->keyframeMax = X265_KEYINT_MAX_INFINITE;
+	param->rc.rateControlMode = X265_RC_ABR;
+	param->rc.bitrate = settings.bitrate / 1000; // x265 uses kbit/s
 
-	// colour definitions, actually ignored by decoder
-	param.vui.b_fullrange = 1;
+	// VUI parameters
+	param->vui.bEnableVideoFullRangeFlag = 1;
 	settings.range = VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
-	param.vui.i_colorprim = 1; // BT.709
-	param.vui.i_colmatrix = 1; // BT.709
+	param->vui.colorPrimaries = 1; // BT.709
+	param->vui.matrixCoeffs = 1;   // BT.709
 	settings.color_model = VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_709;
-	param.vui.i_transfer = 13; // sRGB
+	param->vui.transferCharacteristics = 13; // sRGB
+	param->vui.sarWidth = settings.width;
+	param->vui.sarHeight = settings.height;
 
-	param.vui.i_sar_width = settings.width;
-	param.vui.i_sar_height = settings.height;
-	param.rc.i_rc_method = X265_RC_ABR;
-	param.rc.i_bitrate = settings.bitrate / 1000; // x265 uses kbit/s
-	enc = x265_encoder_open(&param);
-	if (not enc)
+	enc = x265_encoder_open(param);
+	if (!enc)
 	{
 		throw std::runtime_error("failed to create x265 encoder");
 	}
 
-	assert(x265_encoder_maximum_delayed_frames(enc) == 0);
-
-	auto & pic = pic_in;
-	x265_picture_init(&pic);
-	pic.opaque = this;
-	pic.img.i_csp = X265_CSP_NV12;
-	pic.img.i_plane = 2;
-
-	pic.img.i_stride[0] = settings.video_width;
-	pic.img.plane[0] = (uint8_t *)luma.map();
-	pic.img.i_stride[1] = settings.video_width;
-	pic.img.plane[1] = (uint8_t *)chroma.map();
+	pic_in = x265_picture_alloc();
+	x265_picture_init(param, pic_in);
+	pic_in->colorSpace = X265_CSP_I420;
+	pic_in->planes[0] = static_cast<uint8_t *>(luma.map());
+	pic_in->planes[1] = static_cast<uint8_t *>(chroma.map());
+	pic_in->planes[2] = static_cast<uint8_t *>(chroma.map()) + chroma_width * settings.video_height / 2;
+	pic_in->stride[0] = settings.video_width;
+	pic_in->stride[1] = chroma_width;
+	pic_in->stride[2] = chroma_width;
 }
 
 void VideoEncoderX265::PresentImage(yuv_converter & src_yuv, vk::raii::CommandBuffer & cmd_buf)
@@ -223,31 +193,37 @@ void VideoEncoderX265::PresentImage(yuv_converter & src_yuv, vk::raii::CommandBu
 
 void VideoEncoderX265::Encode(bool idr, std::chrono::steady_clock::time_point pts)
 {
-	int num_nal;
-	x265_nal_t * nal;
-	pic_in.i_type = idr ? X265_TYPE_IDR : X265_TYPE_P;
-	pic_in.i_pts = pts.time_since_epoch().count();
+	pic_in->sliceType = idr ? X265_TYPE_IDR : X265_TYPE_P;
+	pic_in->pts = pts.time_since_epoch().count();
 	next_mb = 0;
 	assert(pending_nals.empty());
-	int size = x265_encoder_encode(enc, &nal, &num_nal, &pic_in, &pic_out);
+
+	x265_nal * nals;
+	uint32_t num_nals;
+	int frame_size = x265_encoder_encode(enc, &nals, &num_nals, pic_in, pic_out);
+
+	if (frame_size < 0)
+	{
+		U_LOG_W("x265_encoder_encode failed: %d", frame_size);
+		return;
+	}
+
+	for (uint32_t i = 0; i < num_nals; ++i)
+	{
+		ProcessCb(this, &nals[i]);
+	}
+
 	if (next_mb != num_mb)
 	{
 		U_LOG_W("unexpected macroblock count: %d", next_mb);
-	}
-	if (size < 0)
-	{
-		U_LOG_W("x265_encoder_encode failed: %d", size);
-		return;
-	}
-	if (size == 0)
-	{
-		return;
 	}
 }
 
 VideoEncoderX265::~VideoEncoderX265()
 {
+	x265_picture_free(pic_in);
 	x265_encoder_close(enc);
+	x265_param_free(param);
 }
 
 } // namespace xrt::drivers::wivrn
