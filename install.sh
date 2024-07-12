@@ -43,10 +43,6 @@ sudo apt-get install -y \
 # Upgrade all packages
 sudo apt-get upgrade -y
 
-# Clone WiVRn repository
-git clone https://github.com/Meumeu/WiVRn.git
-cd WiVRn
-
 # Build WiVRn server
 cmake -B build-server . -GNinja \
     -DWIVRN_BUILD_CLIENT=OFF \
