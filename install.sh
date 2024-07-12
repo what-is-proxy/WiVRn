@@ -1,17 +1,20 @@
 #!/bin/bash
 set -e
 
+# Add LunarG signing key and repository
+wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+
 # Update package lists
 sudo apt-get update
 
-# Install dependencies (assuming Ubuntu/Debian-based system)
+# Install Vulkan SDK and other dependencies
 sudo apt-get install -y \
+    vulkan-sdk \
     build-essential \
     cmake \
     ninja-build \
     git \
-    libvulkan-dev \
-    vulkan-tools \
     libcjson-dev \
     libx265-dev \
     libavcodec-dev \
@@ -47,9 +50,7 @@ sudo apt-get upgrade -y
 cmake -B build-server . -GNinja \
     -DWIVRN_BUILD_CLIENT=OFF \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-    -DWIVRN_USE_VAAPI=ON \
     -DWIVRN_USE_X265=ON \
-    -DWIVRN_USE_NVENC=ON \
     -DWIVRN_USE_PIPEWIRE=ON \
     -DWIVRN_USE_PULSEAUDIO=ON \
     -DWIVRN_USE_SYSTEMD=ON
