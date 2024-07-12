@@ -54,7 +54,32 @@ show_progress() {
 # Cleanup function
 cleanup() {
     log_message "Cleaning up..."
-    # Add cleanup tasks here (e.g., removing temporary files)
+
+    # Remove Android SDK if it was newly created
+    if [ ! -d "${ANDROID_HOME}" ] && [ -f "$ANDROID_SDK_ZIP" ]; then
+        log_message "Removing Android SDK..."
+        rm -rf "${ANDROID_HOME}"
+        rm -f "$ANDROID_SDK_ZIP"
+    fi
+
+    # Remove WiVRn client build directory if it exists
+    if [ -d build-client ]; then
+        log_message "Removing WiVRn client build directory..."
+        rm -rf build-client
+    fi
+
+    # Remove WiVRn server build directory if it exists
+    if [ -d build-server ]; then
+        log_message "Removing WiVRn server build directory..."
+        rm -rf build-server
+    fi
+
+    # Remove android-udev-rules directory if it exists
+    if [ -d android-udev-rules ]; then
+        log_message "Removing android-udev-rules directory..."
+        rm -rf android-udev-rules
+    fi
+
     log_message "Cleanup complete. Check $LOG_FILE for details."
 }
 
@@ -153,7 +178,8 @@ fi
 
 # Create APK signing keys for development
 if [ ! -f ks.keystore ]; then
-    log_message "Creating APK signing keys..."
+    log_section "Creating APK signing keys"
+    log_message "Creating keystore..."
     keytool -genkey -v -keystore ks.keystore -alias default_key -keyalg RSA -keysize 2048 -validity 10000 -storepass "$DEFAULT_KEYSTORE_PASSWORD" -keypass "$DEFAULT_KEYSTORE_PASSWORD" -dname "CN=WiVRn Dev, OU=Development, O=WiVRn, L=City, S=State, C=US"
     echo "signingKeyPassword=\"$DEFAULT_KEYSTORE_PASSWORD\"" > gradle.properties
     log_message "Development keystore created with default password. This is for development purposes only."
