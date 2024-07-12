@@ -46,6 +46,8 @@ sudo apt-get upgrade -y
 cmake -B build-server . -GNinja \
     -DWIVRN_BUILD_CLIENT=OFF \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DWIVRN_USE_NVENC=OFF \
+    -DWIVRN_USE_VAAPI=OFF \
     -DWIVRN_USE_X265=ON \
     -DWIVRN_USE_PIPEWIRE=ON \
     -DWIVRN_USE_PULSEAUDIO=ON \
