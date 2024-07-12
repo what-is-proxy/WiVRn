@@ -140,7 +140,7 @@ VideoEncoderX265::VideoEncoderX265(
 	param.fpsDenom = 1'000'000;
 	param.bRepeatHeaders = 1;
 	param.bEnableAccessUnitDelimiters = 0;
-	param.keyframeMax = X265_KEYINT_MAX_INFINITE;
+	param.keyframeMax = -1;
 
 	// colour definitions, actually ignored by decoder
 	param.vui.bEnableVideoFullRangeFlag = 1;
