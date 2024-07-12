@@ -44,18 +44,6 @@ class VideoEncoderX265 : public VideoEncoder
 
 	vk::Rect2D rect;
 
-	struct pending_nal
-	{
-		int first_mb;
-		int last_mb;
-		std::vector<uint8_t> data;
-	};
-
-	std::mutex mutex;
-	int next_mb;
-	int num_mb; // Number of macroblocks in a frame
-	std::list<pending_nal> pending_nals;
-
 public:
 	VideoEncoderX265(wivrn_vk_bundle & vk, encoder_settings & settings, float fps);
 
@@ -64,13 +52,6 @@ public:
 	void Encode(bool idr, std::chrono::steady_clock::time_point pts) override;
 
 	~VideoEncoderX265();
-
-private:
-	static void ProcessCb(x265_encoder * h, x265_nal * nal, void * opaque);
-
-	void ProcessNal(pending_nal && nal);
-
-	void InsertInPendingNal(pending_nal && nal);
 };
 
 } // namespace xrt::drivers::wivrn

@@ -27,61 +27,6 @@
 namespace xrt::drivers::wivrn
 {
 
-void VideoEncoderX265::ProcessCb(x265_encoder * h, x265_nal * nal, void * opaque)
-{
-	VideoEncoderX265 * self = (VideoEncoderX265 *)opaque;
-	std::vector<uint8_t> data(nal->sizeBytes);
-	memcpy(data.data(), nal->payload, nal->sizeBytes);
-
-	switch (nal->type)
-	{
-		case NAL_UNIT_VPS:
-		case NAL_UNIT_SPS:
-		case NAL_UNIT_PPS: {
-			self->SendData(data, false);
-			break;
-		}
-		case NAL_UNIT_CODED_SLICE_TRAIL_R:
-		case NAL_UNIT_CODED_SLICE_IDR_W_RADL:
-			self->ProcessNal({nal->firstMb, nal->lastMb, std::move(data)});
-	}
-}
-
-void VideoEncoderX265::ProcessNal(pending_nal && nal)
-{
-	std::lock_guard lock(mutex);
-	if (nal.first_mb == next_mb)
-	{
-		next_mb = nal.last_mb + 1;
-		SendData(nal.data, next_mb == num_mb);
-	}
-	else
-	{
-		InsertInPendingNal(std::move(nal));
-	}
-	while ((not pending_nals.empty()) and pending_nals.front().first_mb == next_mb)
-	{
-		next_mb = pending_nals.front().last_mb + 1;
-		SendData(pending_nals.front().data, next_mb == num_mb);
-		pending_nals.pop_front();
-	}
-}
-
-void VideoEncoderX265::InsertInPendingNal(pending_nal && nal)
-{
-	auto it = pending_nals.begin();
-	auto end = pending_nals.end();
-	for (; it != end; ++it)
-	{
-		if (it->first_mb > nal.last_mb)
-		{
-			pending_nals.insert(it, std::move(nal));
-			return;
-		}
-	}
-	pending_nals.push_back(std::move(nal));
-}
-
 VideoEncoderX265::VideoEncoderX265(
         wivrn_vk_bundle & vk,
         encoder_settings & settings,
@@ -109,8 +54,6 @@ VideoEncoderX265::VideoEncoderX265(
 	        },
 	};
 
-	num_mb = ((settings.video_width + 15) / 16) * ((settings.video_height + 15) / 16);
-
 	luma = buffer_allocation(
 	        vk.device,
 	        {
@@ -136,7 +79,7 @@ VideoEncoderX265::VideoEncoderX265(
 	param.maxSlices = 32;
 	param.sourceWidth = settings.video_width;
 	param.sourceHeight = settings.video_height;
-	param.fpsNum = fps * 1'000'000;
+	param.fpsNum = static_cast<uint32_t>(fps * 1'000'000);
 	param.fpsDenom = 1'000'000;
 	param.bRepeatHeaders = 1;
 	param.bEnableAccessUnitDelimiters = 0;
@@ -156,17 +99,17 @@ VideoEncoderX265::VideoEncoderX265(
 	param.rc.bitrate = settings.bitrate / 1000; // x265 uses kbit/s
 
 	enc = x265_encoder_open(&param);
-	if (not enc)
+	if (!enc)
 	{
-		throw std::runtime_error("failed to create x265 encoder");
+		throw std::runtime_error("Failed to create x265 encoder");
 	}
 
 	pic_in = x265_picture_alloc();
 	x265_picture_init(&param, pic_in);
 	pic_in->userData = this;
 	pic_in->colorSpace = X265_CSP_I420;
-	pic_in->planes[0] = (uint8_t *)luma.map();
-	pic_in->planes[1] = (uint8_t *)chroma.map();
+	pic_in->planes[0] = static_cast<uint8_t *>(luma.map());
+	pic_in->planes[1] = static_cast<uint8_t *>(chroma.map());
 	pic_in->stride[0] = settings.video_width;
 	pic_in->stride[1] = settings.video_width;
 }
@@ -217,23 +160,21 @@ void VideoEncoderX265::Encode(bool idr, std::chrono::steady_clock::time_point pt
 {
 	x265_nal * nals;
 	uint32_t num_nal;
-	pic_in->sliceType = idr ? X265_TYPE_IDR : X265_TYPE_P;
+	pic_in->sliceType = idr ? X265_TYPE_IDR : X265_TYPE_AUTO;
 	pic_in->pts = pts.time_since_epoch().count();
-	next_mb = 0;
-	assert(pending_nals.empty());
-	int size = x265_encoder_encode(enc, &nals, &num_nal, pic_in, pic_out);
-	if (next_mb != num_mb)
-	{
-		U_LOG_W("unexpected macroblock count: %d", next_mb);
-	}
+
+	int size = x265_encoder_encode(enc, &nals, &num_nal, pic_in, nullptr);
 	if (size < 0)
 	{
 		U_LOG_W("x265_encoder_encode failed: %d", size);
 		return;
 	}
-	if (size == 0)
+
+	for (uint32_t i = 0; i < num_nal; i++)
 	{
-		return;
+		std::vector<uint8_t> data(nals[i].payload, nals[i].payload + nals[i].sizeBytes);
+		bool is_last = (i == num_nal - 1);
+		SendData(data, is_last);
 	}
 }
 
