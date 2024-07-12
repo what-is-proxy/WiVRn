@@ -32,7 +32,7 @@ namespace xrt::drivers::wivrn
 
 class VideoEncoderX265 : public VideoEncoder
 {
-	x265_param * param = nullptr;
+	x265_param param = {};
 	x265_encoder * enc = nullptr;
 
 	x265_picture * pic_in = nullptr;
@@ -66,7 +66,7 @@ public:
 	~VideoEncoderX265();
 
 private:
-	static void ProcessCb(void * opaque, x265_nal * nal);
+	static void ProcessCb(x265_t * h, x265_nal * nal, void * opaque);
 
 	void ProcessNal(pending_nal && nal);
 
