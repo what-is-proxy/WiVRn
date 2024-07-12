@@ -1,14 +1,17 @@
 #!/bin/bash
 set -e
 
-# Install dependencies (assuming Ubuntu/Debian-based system)
+# Update package lists
 sudo apt-get update
+
+# Install dependencies (assuming Ubuntu/Debian-based system)
 sudo apt-get install -y \
     build-essential \
     cmake \
     ninja-build \
     git \
     libvulkan-dev \
+    vulkan-tools \
     libcjson-dev \
     libx265-dev \
     libavcodec-dev \
@@ -34,10 +37,14 @@ sudo apt-get install -y \
     nlohmann-json3-dev \
     libpulse-dev \
     libpipewire-0.3-dev \
-    libcli11-dev
+    libcli11-dev \
+    libboost-all-dev
+
+# Upgrade all packages
+sudo apt-get upgrade -y
 
 # Clone WiVRn repository
-git clone https://github.com/what-is-proxy/WiVRn.git
+git clone https://github.com/Meumeu/WiVRn.git
 cd WiVRn
 
 # Build WiVRn server
@@ -49,12 +56,18 @@ cmake -B build-server . -GNinja \
     -DWIVRN_USE_NVENC=ON \
     -DWIVRN_USE_PIPEWIRE=ON \
     -DWIVRN_USE_PULSEAUDIO=ON \
-    -DWIVRN_USE_SYSTEMD=ON
+    -DWIVRN_USE_SYSTEMD=ON \
+    -DWIVRN_USE_SYSTEM_BOOST=ON
 
 cmake --build build-server
 
 # Enable and start Avahi daemon
 sudo systemctl enable --now avahi-daemon
+
+# Open necessary ports (assuming UFW firewall)
+sudo ufw allow 5353/udp
+sudo ufw allow 9757/tcp
+sudo ufw allow 9757/udp
 
 # Start WiVRn server
 ./build-server/server/wivrn-server
