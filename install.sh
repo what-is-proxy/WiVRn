@@ -8,6 +8,9 @@ ANDROID_SDK_URL="https://dl.google.com/android/repository/commandlinetools-linux
 ANDROID_SDK_ZIP="commandlinetools-linux-9477386_latest.zip"
 DEFAULT_KEYSTORE_PASSWORD="wivrn_dev_password"
 WIVRN_VERSION="1.0.0"  # Update this with the actual version
+ANDROID_HOME="${HOME}/Android"
+export ANDROID_HOME
+export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
 
 # Function to check if a command exists
 command_exists() {
@@ -163,11 +166,6 @@ sudo ./install.sh
 cd ..
 
 log_section "Building WiVRn client"
-# Set up Android environment
-ANDROID_HOME="${HOME}/Android"
-export ANDROID_HOME
-export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
-
 # Build WiVRn client
 log_message "Building WiVRn client..."
 ./gradlew assembleStandardRelease &
