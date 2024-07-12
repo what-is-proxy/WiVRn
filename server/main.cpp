@@ -284,7 +284,12 @@ int inner_main(int argc, char * argv[], bool use_systemd)
 				// FIXME: server doesn't listen on stdin when used in socket activation mode
 				// Write to the server's stdin to make it quit
 				char buffer[] = "\n";
-				(void)write(pipe_fds[1], &buffer, strlen(buffer));
+				ssize_t bytesWritten = write(pipe_fds[1], &buffer, strlen(buffer));
+				if (bytesWritten == -1)
+				{
+					// Handle error
+					std::cerr << "Failed to write to server's stdin: " << strerror(errno) << std::endl;
+				}
 			}
 
 			// Wait until both the server and the client exit
