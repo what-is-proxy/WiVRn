@@ -186,10 +186,14 @@ if [ ! -f ks.keystore ]; then
 fi
 
 log_section "Installing Android udev rules"
-git clone https://github.com/M0Rf30/android-udev-rules.git
-cd android-udev-rules
-sudo ./install.sh
-cd ..
+if [ ! -d "android-udev-rules" ]; then
+    git clone https://github.com/M0Rf30/android-udev-rules.git
+    cd android-udev-rules
+    sudo ./install.sh
+    cd ..
+else
+    log_message "Android udev rules already installed. Skipping."
+fi
 
 log_section "Building WiVRn client"
 # Build WiVRn client
