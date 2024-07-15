@@ -197,6 +197,9 @@ Main() {
   adb forward tcp:${WIVRN_PORT} tcp:${WIVRN_PORT} || { LogMessage "Error: Failed to set up port forwarding"; exit 1; }
   adb install ./WiVRn-standard-release.apk || { LogMessage "Error: Failed to install WiVRn client"; exit 1; }
 
+  LogSection "Starting WiVRn client"
+  adb shell am start -n android.intent.action.VIEW -d "wivrn://localhost" org.meumeu.wivrn || { LogMessage "Error: Failed to start WiVRn client"; exit 1; }
+
   local WIVRN_CONFIG_FILE="$(pwd)/config.json"
   cat > "${WIVRN_CONFIG_FILE}" <<EOF
 {
