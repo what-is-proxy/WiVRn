@@ -71,6 +71,11 @@ Cleanup() {
     rm -rf build-client
   fi
 
+  if [-d build-server]; then
+    LogMessage "Removing WiVRn server build directory..."
+    rm -rf build-server
+  fi
+
   # Remove android-udev-rules directory if it exists
   if [ -d android-udev-rules ]; then
     LogMessage "Removing android-udev-rules directory..."
