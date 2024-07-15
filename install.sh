@@ -218,9 +218,6 @@ EOF
     exit 1
   fi
 
-  LogSection "Starting WiVRn client"
-  LogMessage "Please start the WiVRn client app on your device and connect to the server."
-
   LogMessage "Installation complete. Check ${LOG_FILE} for details."
 }
 
