@@ -132,7 +132,7 @@ Main() {
     mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev libsystemd-dev libva-dev
     nlohmann-json3-dev libpulse-dev libpipewire-0.3-dev libcli11-dev libboost-all-dev
     doxygen libuvc-dev libusb-1.0-0-dev openjdk-17-jre-headless librsvg2-dev libopenxr-dev
-    libopenxr-loader1 xr-hardware sdl2
+    libopenxr-loader1 xr-hardware libsdl2-dev
   )
 
   LogMessage "Installing packages..."
