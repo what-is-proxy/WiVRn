@@ -80,6 +80,10 @@ cleanup() {
         rm -rf android-udev-rules
     fi
 
+    if [ -f adb ]; then
+        adb kill-server
+    fi
+
     log_message "Cleanup complete. Check $LOG_FILE for details."
 }
 
@@ -216,8 +220,31 @@ adb install ./WiVRn-standard-release.apk
 log_section "Starting WiVRn client"
 adb shell am start -a android.intent.action.VIEW -d "wivrn://localhost" org.meumeu.wivrn
 
-# log_message "Stopping ADB server..."
-# adb kill-server
+# Set up WiVRn configuration directory
+WIVRN_CONFIG_DIR="$(pwd)/config"
+mkdir -p "$WIVRN_CONFIG_DIR/wivrn"
+export XDG_CONFIG_HOME="$WIVRN_CONFIG_DIR"
+
+# Create or update the WiVRn configuration file
+WIVRN_CONFIG_FILE="$WIVRN_CONFIG_DIR/wivrn/config.json"
+if [ ! -f "$WIVRN_CONFIG_FILE" ]; then
+    cat > "$WIVRN_CONFIG_FILE" <<EOF
+{
+    "tcp_only": true,
+    "bitrate": 30000000,
+    "scale": [1.0, 1.0],
+    "encoders": ["h265"]
+}
+EOF
+    log_message "Created default WiVRn configuration in $WIVRN_CONFIG_FILE"
+else
+    log_message "Existing WiVRn configuration found in $WIVRN_CONFIG_FILE"
+fi
+
+# Display configuration details
+log_message "WiVRn configuration directory: $WIVRN_CONFIG_DIR"
+log_message "WiVRn configuration file: $WIVRN_CONFIG_FILE"
+log_message "To modify settings, edit $WIVRN_CONFIG_FILE"
 
 log_section "Starting WiVRn server"
 # Start WiVRn server
