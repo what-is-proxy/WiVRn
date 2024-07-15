@@ -141,8 +141,8 @@ log_message "Configuring WiVRn server..."
 cmake -B build-server . -GNinja \
     -DWIVRN_BUILD_CLIENT=OFF \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-    -DWIVRN_USE_NVENC=OFF \
-    -DWIVRN_USE_VAAPI=OFF \
+    -DWIVRN_USE_NVENC=ON \
+    -DWIVRN_USE_VAAPI=ON \
     -DWIVRN_USE_X265=ON \
     -DWIVRN_USE_PIPEWIRE=ON \
     -DWIVRN_USE_PULSEAUDIO=ON \
@@ -195,23 +195,23 @@ else
     log_message "Android udev rules already installed. Skipping."
 fi
 
-log_section "Building WiVRn client"
-# Build WiVRn client
-log_message "Building WiVRn client..."
-./gradlew assembleStandardRelease
-show_progress $!
+# log_section "Building WiVRn client"
+# # Build WiVRn client
+# log_message "Building WiVRn client..."
+# ./gradlew assembleStandardRelease
+# show_progress $!
 
-log_section "Installing WiVRn client"
+# log_section "Installing WiVRn client"
 
-log_message "Starting ADB server..."
-adb start-server
+# log_message "Starting ADB server..."
+# adb start-server
 
-# Install WiVRn client using adb
-log_message "Installing WiVRn client..."
-adb install build/outputs/apk/standard/release/WiVRn-standard-release.apk
+# # Install WiVRn client using adb
+# log_message "Installing WiVRn client..."
+# adb install build/outputs/apk/standard/release/WiVRn-standard-release.apk
 
-log_message "Stopping ADB server..."
-adb kill-server
+# log_message "Stopping ADB server..."
+# adb kill-server
 
 log_section "Starting WiVRn server"
 # Start WiVRn server
