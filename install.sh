@@ -236,7 +236,7 @@ log_section "Starting WiVRn server"
 # Start WiVRn server
 if [ -f ./build-server/server/wivrn-server ]; then
     log_message "Starting WiVRn server..."
-    ./build-server/server/wivrn-server -f "$WIVRN_CONFIG_FILE"
+    ./build-server/server/wivrn-server -f $WIVRN_CONFIG_FILE
 else
     log_message "WiVRn server executable not found. Please check the build process."
     exit 1
