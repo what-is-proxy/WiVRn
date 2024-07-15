@@ -131,7 +131,8 @@ Main() {
     libx11-xcb-dev libxrandr-dev libxcb-randr0-dev libgl-dev libglx-dev
     mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev libsystemd-dev libva-dev
     nlohmann-json3-dev libpulse-dev libpipewire-0.3-dev libcli11-dev libboost-all-dev
-    doxygen libuvc-dev libusb-1.0-0-dev openjdk-17-jre-headless librsvg2-dev
+    doxygen libuvc-dev libusb-1.0-0-dev openjdk-17-jre-headless librsvg2-dev libopenxr-dev
+    libopenxr-loader1 xr-hardware
   )
 
   LogMessage "Installing packages..."
@@ -211,7 +212,7 @@ EOF
   LogSection "Starting WiVRn server"
   if [ -f ./build-server/server/wivrn-server ]; then
     LogMessage "Starting WiVRn server..."
-    KillProcessOnPort ${WIVRN_PORT}
+    KillProcessOnPort ${WIVRN_POR
     ./build-server/server/wivrn-server -f "${WIVRN_CONFIG_FILE}" || { LogMessage "Error: Failed to start WiVRn server"; exit 1; }
   else
     LogMessage "Error: WiVRn server executable not found. Please check the build process."
