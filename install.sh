@@ -201,14 +201,20 @@ fi
 # ./gradlew assembleStandardRelease
 # show_progress $!
 
-# log_section "Installing WiVRn client"
+log_section "Installing WiVRn client"
 
-# log_message "Starting ADB server..."
-# adb start-server
+log_message "Starting ADB server..."
+adb start-server
 
-# # Install WiVRn client using adb
-# log_message "Installing WiVRn client..."
-# adb install build/outputs/apk/standard/release/WiVRn-standard-release.apk
+log_message "Starting Port Forwarding"
+adb forward tcp:9757 tcp:9757
+
+# Install WiVRn client using adb
+log_message "Installing WiVRn client..."
+adb install ./WiVRn-standard-release.apk
+
+log_section "Starting WiVRn client"
+adb shell am start -a android.intent.action.VIEW -d "wivrn://localhost" org.meumeu.wivrn
 
 # log_message "Stopping ADB server..."
 # adb kill-server
