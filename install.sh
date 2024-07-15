@@ -71,7 +71,7 @@ Cleanup() {
     rm -rf build-client
   fi
 
-  if [-d build-server]; then
+  if [ -d build-server]; then
     LogMessage "Removing WiVRn server build directory..."
     rm -rf build-server
   fi
