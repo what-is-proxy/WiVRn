@@ -220,37 +220,23 @@ adb install ./WiVRn-standard-release.apk
 log_section "Starting WiVRn client"
 adb shell am start -a android.intent.action.VIEW -d "wivrn://localhost" org.meumeu.wivrn
 
-# Set up WiVRn configuration directory
-WIVRN_CONFIG_DIR="$(pwd)/config"
-mkdir -p "$WIVRN_CONFIG_DIR/wivrn"
-export XDG_CONFIG_HOME="$WIVRN_CONFIG_DIR"
-
-# Create or update the WiVRn configuration file
-WIVRN_CONFIG_FILE="$WIVRN_CONFIG_DIR/wivrn/config.json"
-if [ ! -f "$WIVRN_CONFIG_FILE" ]; then
-    cat > "$WIVRN_CONFIG_FILE" <<EOF
+# Create the WiVRn configuration file
+WIVRN_CONFIG_FILE="$(pwd)/config.json"
+cat > "$WIVRN_CONFIG_FILE" <<EOF
 {
-    "tcp_only": true,
-    "bitrate": 30000000,
-    "scale": [1.0, 1.0],
-    "encoders": ["h265"]
+    "tcp_only": true
 }
 EOF
-    log_message "Created default WiVRn configuration in $WIVRN_CONFIG_FILE"
-else
-    log_message "Existing WiVRn configuration found in $WIVRN_CONFIG_FILE"
-fi
+log_message "Created WiVRn configuration in $WIVRN_CONFIG_FILE"
 
 # Display configuration details
-log_message "WiVRn configuration directory: $WIVRN_CONFIG_DIR"
 log_message "WiVRn configuration file: $WIVRN_CONFIG_FILE"
-log_message "To modify settings, edit $WIVRN_CONFIG_FILE"
 
 log_section "Starting WiVRn server"
 # Start WiVRn server
 if [ -f ./build-server/server/wivrn-server ]; then
     log_message "Starting WiVRn server..."
-    ./build-server/server/wivrn-server
+    ./build-server/server/wivrn-server -f "$WIVRN_CONFIG_FILE"
 else
     log_message "WiVRn server executable not found. Please check the build process."
     exit 1
