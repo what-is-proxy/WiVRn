@@ -212,8 +212,8 @@ EOF
   LogSection "Starting WiVRn server"
   if [ -f ./build-server/server/wivrn-server ]; then
     LogMessage "Starting WiVRn server..."
-    KillProcessOnPort ${WIVRN_POR
-    ./build-server/server/wivrn-server -f WIVRN_CONFIG_FILE || { LogMessage "Error: Failed to start WiVRn server"; exit 1; }
+    KillProcessOnPort ${WIVRN_PORT}
+    ./build-server/server/wivrn-server -f "${WIVRN_CONFIG_FILE}" || { LogMessage "Error: Failed to start WiVRn server"; exit 1; }
   else
     LogMessage "Error: WiVRn server executable not found. Please check the build process."
     exit 1
