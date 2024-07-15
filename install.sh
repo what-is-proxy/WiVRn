@@ -71,7 +71,7 @@ cleanup() {
     # Remove WiVRn server build directory if it exists
     if [ -d build-server ]; then
         log_message "Removing WiVRn server build directory..."
-        rm -rf build-server
+        # rm -rf build-server
     fi
 
     # Remove android-udev-rules directory if it exists
@@ -218,7 +218,7 @@ log_message "Installing WiVRn client..."
 adb install ./WiVRn-standard-release.apk
 
 log_section "Starting WiVRn client"
-adb shell am start -a android.intent.action.VIEW -d "wivrn://localhost" org.meumeu.wivrn
+# adb shell am start -a android.intent.action.VIEW -d "wivrn://localhost" org.meumeu.wivrn
 
 # Create the WiVRn configuration file
 WIVRN_CONFIG_FILE="$(pwd)/config.json"
